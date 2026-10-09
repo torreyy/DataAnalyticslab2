@@ -2,681 +2,687 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Data Analytics Training Platform Demo</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Data Analytics Training Platform Demo</title>
 
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body>
-  <div id="root"></div>
+<div id="root"></div>
 
-  <script type="text/babel">
-    const { useMemo, useState } = React;
+<script type="text/babel">
+const { useMemo, useState } = React;
 
-    function cx(...classes) {
-      return classes.filter(Boolean).join(" ");
-    }
+function cx(...classes) {
+return classes.filter(Boolean).join(" ");
+}
 
-    function toCsv(rows) {
-      return rows.map(r => r.map(v => {
-        const s = String(v ?? "");
-        const needsQuotes = s.includes(",") || s.includes('"') || s.includes("\n");
-        const escaped = s.replace(/"/g, '""');
-        return needsQuotes ? `"${escaped}"` : escaped;
-      }).join(",")).join("\n");
-    }
+function toCsv(rows) {
+return rows.map(r => r.map(v => {
+const s = String(v ?? "");
+const needsQuotes = s.includes(",") || s.includes('"') || s.includes("\n");
+const escaped = s.replace(/"/g, '""');
+return needsQuotes ? "${escaped}"` : escaped;
+}).join(",")).join("\n");
+}
 
-    async function copyText(text) {
-      try {
-        await navigator.clipboard.writeText(text);
-        return true;
-      } catch (e) {
-        return false;
-      }
-    }
+async function copyText(text) {
+try {
+await navigator.clipboard.writeText(text);
+return true;
+} catch (e) {
+return false;
+}
+}
 
-    // Icons
-    const CheckCircle = ({ size = 24, className = "" }) => (
-      <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-        <polyline points="22 4 12 14.01 9 11.01" />
-      </svg>
-    );
+// Icons
+const CheckCircle = ({ size = 24, className = "" }) => (
+<svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+<polyline points="22 4 12 14.01 9 11.01" />
+</svg>
+);
 
-    const Circle = ({ size = 24, className = "" }) => (
-      <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <circle cx="12" cy="12" r="10" />
-      </svg>
-    );
+const Circle = ({ size = 24, className = "" }) => (
+<svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+<circle cx="12" cy="12" r="10" />
+</svg>
+);
 
-    const ClipboardIcon = ({ size = 18, className = "" }) => (
-      <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <rect x="9" y="2" width="6" height="4" rx="1" />
-        <path d="M9 4H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2" />
-      </svg>
-    );
+const ClipboardIcon = ({ size = 18, className = "" }) => (
+<svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+<rect x="9" y="2" width="6" height="4" rx="1" />
+<path d="M9 4H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2" />
+</svg>
+);
 
-    const FileText = ({ size = 18, className = "" }) => (
-      <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-        <polyline points="14 2 14 8 20 8" />
-        <line x1="16" y1="13" x2="8" y2="13" />
-        <line x1="16" y1="17" x2="8" y2="17" />
-        <line x1="10" y1="9" x2="8" y2="9" />
-      </svg>
-    );
+const FileText = ({ size = 18, className = "" }) => (
+<svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+<polyline points="14 2 14 8 20 8" />
+<line x1="16" y1="13" x2="8" y2="13" />
+<line x1="16" y1="17" x2="8" y2="17" />
+<line x1="10" y1="9" x2="8" y2="9" />
+</svg>
+);
 
-    // Main
-    function DataAnalyticsTrainingDemo() {
-      const [view, setView] = useState("welcome"); // welcome | dashboard | tasks | certificate
-      const [nameInput, setNameInput] = useState("");
-      const [user, setUser] = useState({
-        name: "",
-        hasStarted: false,
-        completedTaskIds: [],
-        notesByTaskId: {}
-      });
+// Main
+function DataAnalyticsTrainingDemo() {
+const [view, setView] = useState("home"); // welcome | dashboard | tasks | certificate
+const [nameInput, setNameInput] = useState("");
+const [user, setUser] = useState({
+name: "",
+hasStarted: false,
+completedTaskIds: [],
+notesByTaskId: {}
+});
 
-      const [currentTaskId, setCurrentTaskId] = useState(null);
-      const [toast, setToast] = useState("");
+const [currentTaskId, setCurrentTaskId] = useState(null);
+const [toast, setToast] = useState("");
 
-      const tasks = useMemo(() => {
-        // PASTE CHUNK 2 BELOW THIS LINE
-        return [];
-      }, []);
+const tasks = useMemo(() => {
+// PASTE CHUNK 2 BELOW THIS LINE
+return [];
+}, []);
 
-      const weeks = useMemo(() => {
-        const map = new Map();
-        tasks.forEach(t => {
-          if (!map.has(t.week)) map.set(t.week, { week: t.week, days: new Map() });
-          const w = map.get(t.week);
-          if (!w.days.has(t.day)) w.days.set(t.day, []);
-          w.days.get(t.day).push(t);
-        });
+const weeks = useMemo(() => {
+const map = new Map();
+tasks.forEach(t => {
+if (!map.has(t.week)) map.set(t.week, { week: t.week, days: new Map() });
+const w = map.get(t.week);
+if (!w.days.has(t.day)) w.days.set(t.day, []);
+w.days.get(t.day).push(t);
+});
 
-        const orderedWeeks = Array.from(map.values()).sort((a, b) => a.week - b.week);
-        orderedWeeks.forEach(w => {
-          const orderedDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-          w.days = orderedDays
-            .filter(d => w.days.has(d))
-            .map(d => ({ day: d, tasks: w.days.get(d) }));
-        });
+const orderedWeeks = Array.from(map.values()).sort((a, b) => a.week - b.week);
+orderedWeeks.forEach(w => {
+const orderedDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+w.days = orderedDays
+.filter(d => w.days.has(d))
+.map(d => ({ day: d, tasks: w.days.get(d) }));
+});
 
-        return orderedWeeks;
-      }, [tasks]);
+return orderedWeeks;
+}, [tasks]);
 
-      const totalTasks = tasks.length;
-      const completedCount = user.completedTaskIds.length;
+const totalTasks = tasks.length;
+const completedCount = user.completedTaskIds.length;
 
-      const currentTask = useMemo(() => {
-        if (!currentTaskId) return null;
-        return tasks.find(t => t.id === currentTaskId) || null;
-      }, [currentTaskId, tasks]);
+const currentTask = useMemo(() => {
+if (!currentTaskId) return null;
+return tasks.find(t => t.id === currentTaskId) || null;
+}, [currentTaskId, tasks]);
 
-      function startDemo() {
-        const n = nameInput.trim();
-        if (!n) return;
-        setUser(prev => ({ ...prev, name: n, hasStarted: true }));
-        setView("dashboard");
-      }
+function startDemo() {
+const n = nameInput.trim();
+if (!n) return;
+setUser(prev => ({ ...prev, name: n, hasStarted: true }));
+setView("dashboard");
+}
 
-      function markComplete(taskId, note, selfCheckState) {
-        setUser(prev => {
-          const already = prev.completedTaskIds.includes(taskId);
-          const nextCompleted = already ? prev.completedTaskIds : [...prev.completedTaskIds, taskId];
+function markComplete(taskId, note, selfCheckState) {
+setUser(prev => {
+const already = prev.completedTaskIds.includes(taskId);
+const nextCompleted = already ? prev.completedTaskIds : [...prev.completedTaskIds, taskId];
 
-          return {
-            ...prev,
-            completedTaskIds: nextCompleted,
-            notesByTaskId: {
-              ...prev.notesByTaskId,
-              [taskId]: {
-                note: note || "",
-                selfCheck: selfCheckState || {}
-              }
-            }
-          };
-        });
+return {
+...prev,
+completedTaskIds: nextCompleted,
+notesByTaskId: {
+...prev.notesByTaskId,
+[taskId]: {
+note: note || "",
+selfCheck: selfCheckState || {}
+}
+}
+};
+});
 
-        setCurrentTaskId(null);
-        setToast("Task saved as complete.");
-        setTimeout(() => setToast(""), 1600);
-      }
+setCurrentTaskId(null);
+setToast("Task saved as complete.");
+setTimeout(() => setToast(""), 1600);
+}
 
-      function resetTaskView() {
-        setCurrentTaskId(null);
-      }
+function resetTaskView() {
+setCurrentTaskId(null);
+}
 
-      // Welcome
-      if (view === "welcome" && !user.hasStarted) {
-        return (
-          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-100 p-6">
-            <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-6 sm:p-10">
-              <div className="flex items-start justify-between gap-4 flex-wrap">
-                <div>
-                  <h1 className="text-3xl font-bold text-slate-800">Data Analytics Training Platform</h1>
-                  <p className="text-slate-600 mt-2">
-                    Demo mode focused on hands-on analytics work.
-                  </p>
-                </div>
-                <span className="inline-flex items-center rounded-full bg-indigo-50 text-indigo-700 px-3 py-1 text-sm font-semibold">
-                  Demo
-                </span>
-              </div>
 
-              <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
-                <p className="font-semibold text-amber-900">Demo Notice</p>
-                <p className="text-amber-800 mt-1 text-sm leading-relaxed">
-                  The full platform includes assessment-based placement, time tracking, and a full workload.
-                  This demo removes the time clock and payroll simulation so learners focus on hands-on tasks and realistic deliverables.
-                  The goal is to keep it engaging and job-like instead of school-like.
-                </p>
-              </div>
+// Landing Page
+if (view === "home") {
+return (
+<div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-100 px-4 py-8 sm:px-6 sm:py-12 flex items-center justify-center">
+<main className="w-full max-w-3xl mx-auto bg-white rounded-2xl shadow-lg p-6 sm:p-10 md:p-12">
+<div className="text-center">
+<span className="inline-flex items-center rounded-full bg-indigo-50 text-indigo-700 px-4 py-1.5 text-sm font-semibold">
+Learn by Doing
+</span>
 
-              <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
-                <p className="font-semibold text-slate-900">What you do in this demo</p>
-                <ul className="text-slate-700 mt-2 text-sm space-y-1 list-disc pl-5">
-                  <li>Work with messy data that needs cleaning</li>
-                  <li>Build summaries like pivots and KPI totals</li>
-                  <li>Write short analyst-style findings and recommendations</li>
-                  <li>Use self-check rubrics to verify quality</li>
-                </ul>
-              </div>
+<h1 className="mt-5 text-3xl sm:text-4xl font-bold leading-tight text-slate-900">
+Data Analytics Training Platform
+</h1>
 
-              <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="rounded-lg border border-slate-200 p-4">
-                  <p className="text-sm text-slate-600">Tasks in demo</p>
-                  <p className="text-2xl font-bold text-slate-800">{totalTasks}</p>
-                </div>
-                <div className="rounded-lg border border-slate-200 p-4">
-                  <p className="text-sm text-slate-600">Deliverable style</p>
-                  <p className="text-base font-semibold text-slate-800">Clean, summarize, report</p>
-                </div>
-                <div className="rounded-lg border border-slate-200 p-4">
-                  <p className="text-sm text-slate-600">Tooling</p>
-                  <p className="text-base font-semibold text-slate-800">Google Sheets friendly</p>
-                </div>
-              </div>
+<p className="mt-4 text-base sm:text-lg text-slate-600 leading-relaxed">
+Build practical data analytics skills step by step through short, hands-on modules.
+</p>
+</div>
 
-              <div className="mt-8 space-y-3">
-                <label className="block text-sm font-semibold text-slate-700">Enter your name</label>
-                <input
-                  type="text"
-                  value={nameInput}
-                  onChange={(e) => setNameInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") startDemo(); }}
-                  className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="Your name"
-                />
-                <button
-                  onClick={startDemo}
-                  disabled={!nameInput.trim()}
-                  className="w-full rounded-lg bg-indigo-600 text-white py-3 font-semibold hover:bg-indigo-700 disabled:bg-slate-400"
-                >
-                  Enter Demo
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      }
+<section className="mt-8 sm:mt-10 rounded-xl border border-slate-200 bg-slate-50 p-5 sm:p-6">
+<h2 className="text-xl font-bold text-slate-900">
+What you'll learn
+</h2>
 
-      // Task Workspace
-      if (currentTask) {
-        const saved = user.notesByTaskId[currentTask.id] || { note: "", selfCheck: {} };
-        const [note, setNote] = useState(saved.note || "");
-        const [selfCheck, setSelfCheck] = useState(saved.selfCheck || {});
-        const csv = currentTask.dataset ? toCsv(currentTask.dataset) : "";
+<ul className="mt-5 space-y-4">
+{[
+"Clean messy datasets and fix data quality issues.",
+"Standardize data and calculate net revenue.",
+"Build summaries, pivot-style reports, and key performance indicators (KPIs).",
+"Write clear findings and data-driven recommendations."
+ ].map((item, index) => (
+<li key={index} className="flex items-start gap-3">
+<span className="mt-0.5 flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 font-bold text-sm">
+{index + 1}
+</span>
+<span className="text-slate-700 leading-relaxed">
+{item}
+</span>
+</li>
+))}
+</ul>
+</section>
 
-        function toggleCheck(key) {
-          setSelfCheck(prev => ({ ...prev, [key]: !prev[key] }));
-        }
+<button
+onClick={() => {
+setUser(prev => ({
+...prev,
+name: prev.name || "Learner",
+hasStarted: true
+}));
+setView("dashboard");
+}}
+className="mt-8 w-full rounded-xl bg-indigo-600 px-6 py-4 text-lg font-bold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200"
+>
+Start Learning
+</button>
 
-        const requiredKeys = currentTask.selfCheck ? currentTask.selfCheck.map(x => x.key) : [];
-        const allChecked = requiredKeys.length === 0 ? true : requiredKeys.every(k => !!selfCheck[k]);
-        const canComplete = allChecked && note.trim().length >= 20;
+<p className="mt-4 text-center text-sm text-slate-500">
+Learn at your own pace, one practical task at a time.
+</p>
+</main>
+</div>
+);
+}
 
-        return (
-          <div className="min-h-screen bg-slate-50">
-            <div className="bg-white shadow">
-              <div className="max-w-6xl mx-auto px-4 py-4">
-                <button
-                  onClick={resetTaskView}
-                  className="text-indigo-700 hover:underline text-sm font-semibold"
-                >
-                  ← Back to Task List
-                </button>
+// Task Workspace
+if (currentTask) {
+const saved = user.notesByTaskId[currentTask.id] || { note: "", selfCheck: {} };
+const [note, setNote] = useState(saved.note || "");
+const [selfCheck, setSelfCheck] = useState(saved.selfCheck || {});
+const csv = currentTask.dataset ? toCsv(currentTask.dataset) : "";
 
-                <div className="mt-2 flex items-start justify-between gap-4 flex-wrap">
-                  <div>
-                    <h1 className="text-2xl font-bold text-slate-900">{currentTask.title}</h1>
-                    <p className="text-slate-600 mt-1 text-sm">
-                      {currentTask.day} • Week {currentTask.week} • Deliverable task
-                    </p>
-                  </div>
-                  <span className="inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-3 py-1 text-sm font-semibold">
-                    {user.completedTaskIds.includes(currentTask.id) ? "Completed" : "In progress"}
-                  </span>
-                </div>
-              </div>
-            </div>
+function toggleCheck(key) {
+setSelfCheck(prev => ({ ...prev, [key]: !prev[key] }));
+}
 
-            <div className="max-w-6xl mx-auto px-4 py-6">
-              <div className="bg-white rounded-xl shadow p-5 sm:p-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-2">
-                    <h2 className="text-lg font-bold text-slate-900">Scenario</h2>
-                    <p className="text-slate-700 mt-2 leading-relaxed">{currentTask.scenario}</p>
+const requiredKeys = currentTask.selfCheck ? currentTask.selfCheck.map(x => x.key) : [];
+const allChecked = requiredKeys.length === 0 ? true : requiredKeys.every(k => !!selfCheck[k]);
+const canComplete = allChecked && note.trim().length >= 20;
 
-                    <h3 className="text-base font-bold text-slate-900 mt-6">What you need to do</h3>
-                    <ol className="list-decimal pl-5 mt-2 space-y-1 text-slate-700">
-                      {currentTask.steps.map((s, idx) => <li key={idx}>{s}</li>)}
-                    </ol>
+return (
+<div className="min-h-screen bg-slate-50">
+<div className="bg-white shadow">
+<div className="max-w-6xl mx-auto px-4 py-4">
+<button
+onClick={resetTaskView}
+className="text-indigo-700 hover:underline text-sm font-semibold"
+>
+← Back to Task List
+</button>
 
-                    <h3 className="text-base font-bold text-slate-900 mt-6">Deliverable</h3>
-                    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 mt-2">
-                      <p className="text-slate-800 font-semibold">{currentTask.deliverable.title}</p>
-                      <ul className="list-disc pl-5 mt-2 text-sm text-slate-700 space-y-1">
-                        {currentTask.deliverable.items.map((it, idx) => <li key={idx}>{it}</li>)}
-                      </ul>
-                    </div>
+<div className="mt-2 flex items-start justify-between gap-4 flex-wrap">
+<div>
+<h1 className="text-2xl font-bold text-slate-900">{currentTask.title}</h1>
+<p className="text-slate-600 mt-1 text-sm">
+{currentTask.day} • Week {currentTask.week} • Deliverable task
+</p>
+</div>
+<span className="inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-3 py-1 text-sm font-semibold">
+{user.completedTaskIds.includes(currentTask.id) ? "Completed" : "In progress"}
+</span>
+</div>
+</div>
+</div>
 
-                    {currentTask.dataset && (
-                      <>
-                        <div className="flex items-center justify-between gap-3 flex-wrap mt-6">
-                          <h3 className="text-base font-bold text-slate-900">Dataset (messy on purpose)</h3>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={async () => {
-                                const ok = await copyText(csv);
-                                setToast(ok ? "Dataset copied as CSV." : "Copy failed. Your browser may block clipboard.");
-                                setTimeout(() => setToast(""), 1600);
-                              }}
-                              className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
-                            >
-                              <ClipboardIcon /> Copy CSV
-                            </button>
-                          </div>
-                        </div>
+<div className="max-w-6xl mx-auto px-4 py-6">
+<div className="bg-white rounded-xl shadow p-5 sm:p-6">
+<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<div className="lg:col-span-2">
+<h2 className="text-lg font-bold text-slate-900">Scenario</h2>
+<p className="text-slate-700 mt-2 leading-relaxed">{currentTask.scenario}</p>
 
-                        <div className="mt-3 overflow-x-auto rounded-lg border border-slate-200">
-                          <table className="min-w-full text-sm">
-                            <thead className="bg-slate-100">
-                              <tr>
-                                {currentTask.dataset[0].map((h, i) => (
-                                  <th key={i} className="px-3 py-2 text-left font-bold text-slate-800 border-b border-slate-200">
-                                    {h}
-                                  </th>
-                                ))}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {currentTask.dataset.slice(1).map((row, i) => (
-                                <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-50"}>
-                                  {row.map((cell, j) => (
-                                    <td key={j} className="px-3 py-2 text-slate-700 border-b border-slate-100 whitespace-nowrap">
-                                      {String(cell)}
-                                    </td>
-                                  ))}
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
+<h3 className="text-base font-bold text-slate-900 mt-6">What you need to do</h3>
+<ol className="list-decimal pl-5 mt-2 space-y-1 text-slate-700">
+{currentTask.steps.map((s, idx) => <li key={idx}>{s}</li>)}
+</ol>
 
-                        <div className="mt-3">
-                          <details className="rounded-lg border border-slate-200 bg-white p-4">
-                            <summary className="cursor-pointer text-sm font-semibold text-slate-800 inline-flex items-center gap-2">
-                              <FileText /> Show raw CSV text
-                            </summary>
-                            <textarea
-                              readOnly
-                              value={csv}
-                              className="mt-3 w-full h-44 rounded-lg border border-slate-300 p-3 font-mono text-xs text-slate-800"
-                            />
-                          </details>
-                        </div>
-                      </>
-                    )}
-                  </div>
+<h3 className="text-base font-bold text-slate-900 mt-6">Deliverable</h3>
+<div className="rounded-lg border border-slate-200 bg-slate-50 p-4 mt-2">
+<p className="text-slate-800 font-semibold">{currentTask.deliverable.title}</p>
+<ul className="list-disc pl-5 mt-2 text-sm text-slate-700 space-y-1">
+{currentTask.deliverable.items.map((it, idx) => <li key={idx}>{it}</li>)}
+</ul>
+</div>
 
-                  <div className="lg:col-span-1">
-                    <h3 className="text-lg font-bold text-slate-900">Self-check rubric</h3>
-                    <p className="text-sm text-slate-600 mt-1">
-                      Mark each item when you have completed it.
-                    </p>
+{currentTask.dataset && (
+<>
+<div className="flex items-center justify-between gap-3 flex-wrap mt-6">
+<h3 className="text-base font-bold text-slate-900">Dataset (messy on purpose)</h3>
+<div className="flex gap-2">
+<button
+onClick={async () => {
+const ok = await copyText(csv);
+setToast(ok ? "Dataset copied as CSV." : "Copy failed. Your browser may block clipboard.");
+setTimeout(() => setToast(""), 1600);
+}}
+className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+>
+<ClipboardIcon /> Copy CSV
+</button>
+</div>
+</div>
 
-                    <div className="mt-3 space-y-2">
-                      {currentTask.selfCheck.map(item => (
-                        <button
-                          key={item.key}
-                          onClick={() => toggleCheck(item.key)}
-                          className={cx(
-                            "w-full text-left rounded-lg border px-3 py-3 transition",
-                            selfCheck[item.key] ? "border-green-200 bg-green-50" : "border-slate-200 bg-white hover:bg-slate-50"
-                          )}
-                        >
-                          <div className="flex items-start gap-3">
-                            {selfCheck[item.key]
-                              ? <CheckCircle className="text-green-700 mt-0.5 flex-shrink-0" size={20} />
-                              : <Circle className="text-slate-400 mt-0.5 flex-shrink-0" size={20} />
-                            }
-                            <div>
-                              <p className={cx("font-semibold", selfCheck[item.key] ? "text-green-900" : "text-slate-800")}>
-                                {item.label}
-                              </p>
-                              <p className={cx("text-xs mt-1", selfCheck[item.key] ? "text-green-800" : "text-slate-600")}>
-                                {item.hint}
-                              </p>
-                            </div>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
+<div className="mt-3 overflow-x-auto rounded-lg border border-slate-200">
+<table className="min-w-full text-sm">
+<thead className="bg-slate-100">
+<tr>
+{currentTask.dataset[0].map((h, i) => (
+<th key={i} className="px-3 py-2 text-left font-bold text-slate-800 border-b border-slate-200">
+{h}
+</th>
+))}
+</tr>
+</thead>
+<tbody>
+{currentTask.dataset.slice(1).map((row, i) => (
+<tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+{row.map((cell, j) => (
+<td key={j} className="px-3 py-2 text-slate-700 border-b border-slate-100 whitespace-nowrap">
+{String(cell)}
+</td>
+))}
+</tr>
+))}
+</tbody>
+</table>
+</div>
 
-                    <div className="mt-6">
-                      <label className="block text-sm font-bold text-slate-900">
-                        Your deliverable notes
-                      </label>
-                      <p className="text-xs text-slate-600 mt-1">
-                        Write what you did and what you found. Minimum 20 characters.
-                      </p>
-                      <textarea
-                        value={note}
-                        onChange={(e) => setNote(e.target.value)}
-                        className="mt-2 w-full h-40 rounded-lg border border-slate-300 p-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        placeholder="Example: Removed duplicate Order IDs, standardized dates to YYYY-MM-DD, pivot shows West region is leading revenue, likely due to higher AOV."
-                      />
-                    </div>
+<div className="mt-3">
+<details className="rounded-lg border border-slate-200 bg-white p-4">
+<summary className="cursor-pointer text-sm font-semibold text-slate-800 inline-flex items-center gap-2">
+<FileText /> Show raw CSV text
+</summary>
+<textarea
+readOnly
+value={csv}
+className="mt-3 w-full h-44 rounded-lg border border-slate-300 p-3 font-mono text-xs text-slate-800"
+/>
+</details>
+</div>
+</>
+)}
+</div>
 
-                    <button
-                      onClick={() => markComplete(currentTask.id, note, selfCheck)}
-                      disabled={!canComplete}
-                      className={cx(
-                        "mt-4 w-full rounded-lg py-3 font-bold",
-                        canComplete ? "bg-indigo-600 text-white hover:bg-indigo-700" : "bg-slate-300 text-slate-600"
-                      )}
-                    >
-                      Mark Task Complete
-                    </button>
+<div className="lg:col-span-1">
+<h3 className="text-lg font-bold text-slate-900">Self-check rubric</h3>
+<p className="text-sm text-slate-600 mt-1">
+Mark each item when you have completed it.
+</p>
 
-                    <button
-                      onClick={resetTaskView}
-                      className="mt-2 w-full rounded-lg border border-slate-300 bg-white py-3 font-semibold text-slate-800 hover:bg-slate-50"
-                    >
-                      Back to list
-                    </button>
-                  </div>
-                </div>
-              </div>
+<div className="mt-3 space-y-2">
+{currentTask.selfCheck.map(item => (
+<button
+key={item.key}
+onClick={() => toggleCheck(item.key)}
+className={cx(
+"w-full text-left rounded-lg border px-3 py-3 transition",
+selfCheck[item.key] ? "border-green-200 bg-green-50" : "border-slate-200 bg-white hover:bg-slate-50"
+)}
+>
+<div className="flex items-start gap-3">
+{selfCheck[item.key]
+? <CheckCircle className="text-green-700 mt-0.5 flex-shrink-0" size={20} />
+: <Circle className="text-slate-400 mt-0.5 flex-shrink-0" size={20} />
+}
+<div>
+<p className={cx("font-semibold", selfCheck[item.key] ? "text-green-900" : "text-slate-800")}>
+{item.label}
+</p>
+<p className={cx("text-xs mt-1", selfCheck[item.key] ? "text-green-800" : "text-slate-600")}>
+{item.hint}
+</p>
+</div>
+</div>
+</button>
+))}
+</div>
 
-              {toast && (
-                <div className="fixed bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-slate-900 text-white px-4 py-2 text-sm shadow-lg">
-                  {toast}
-                </div>
-              )}
-            </div>
-          </div>
-        );
-      }
+<div className="mt-6">
+<label className="block text-sm font-bold text-slate-900">
+Your deliverable notes
+</label>
+<p className="text-xs text-slate-600 mt-1">
+Write what you did and what you found. Minimum 20 characters.
+</p>
+<textarea
+value={note}
+onChange={(e) => setNote(e.target.value)}
+className="mt-2 w-full h-40 rounded-lg border border-slate-300 p-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+placeholder="Example: Removed duplicate Order IDs, standardized dates to YYYY-MM-DD, pivot shows West region is leading revenue, likely due to higher AOV."
+/>
+</div>
 
-      // Dashboard
-      function TopNav() {
-        return (
-          <div className="bg-white shadow">
-            <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-3 flex-wrap">
-              <div>
-                <h1 className="text-xl font-bold text-slate-900">Data Analytics Training</h1>
-                <p className="text-sm text-slate-600">Demo mode • Hands-on deliverables</p>
-              </div>
-              <div className="flex gap-2 flex-wrap">
-                <button onClick={() => setView("dashboard")} className={cx("px-3 py-2 rounded-lg text-sm font-semibold", view === "dashboard" ? "bg-indigo-50 text-indigo-700" : "text-slate-700 hover:bg-slate-100")}>
-                  Dashboard
-                </button>
-                <button onClick={() => setView("tasks")} className={cx("px-3 py-2 rounded-lg text-sm font-semibold", view === "tasks" ? "bg-indigo-50 text-indigo-700" : "text-slate-700 hover:bg-slate-100")}>
-                  Tasks
-                </button>
-                <button onClick={() => setView("certificate")} className={cx("px-3 py-2 rounded-lg text-sm font-semibold", view === "certificate" ? "bg-indigo-50 text-indigo-700" : "text-slate-700 hover:bg-slate-100")}>
-                  Certificate
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      }
+<button
+onClick={() => markComplete(currentTask.id, note, selfCheck)}
+disabled={!canComplete}
+className={cx(
+"mt-4 w-full rounded-lg py-3 font-bold",
+canComplete ? "bg-indigo-600 text-white hover:bg-indigo-700" : "bg-slate-300 text-slate-600"
+)}
+>
+Mark Task Complete
+</button>
 
-      if (view === "dashboard") {
-        const pct = totalTasks ? Math.round((completedCount / totalTasks) * 100) : 0;
+<button
+onClick={resetTaskView}
+className="mt-2 w-full rounded-lg border border-slate-300 bg-white py-3 font-semibold text-slate-800 hover:bg-slate-50"
+>
+Back to list
+</button>
+</div>
+</div>
+</div>
 
-        return (
-          <div className="min-h-screen bg-slate-50">
-            <TopNav />
-            <div className="max-w-6xl mx-auto px-4 py-6">
-              <div className="rounded-xl bg-indigo-600 text-white p-6 shadow">
-                <h2 className="text-2xl font-bold">Welcome, {user.name}!</h2>
-                <p className="mt-1 text-indigo-100">
-                  This demo focuses on realistic deliverables, not quiz questions.
-                </p>
-              </div>
+{toast && (
+<div className="fixed bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-slate-900 text-white px-4 py-2 text-sm shadow-lg">
+{toast}
+</div>
+)}
+</div>
+</div>
+);
+}
 
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="rounded-xl bg-white p-5 shadow">
-                  <p className="text-sm text-slate-600">Tasks completed</p>
-                  <p className="text-3xl font-bold text-slate-900 mt-1">{completedCount} / {totalTasks}</p>
-                  <div className="mt-3 h-3 rounded-full bg-slate-200">
-                    <div className="h-3 rounded-full bg-indigo-600" style={{ width: `${pct}%` }} />
-                  </div>
-                  <p className="text-xs text-slate-600 mt-2">{pct}% complete</p>
-                </div>
+// Dashboard
+function TopNav() {
+return (
+<div className="bg-white shadow">
+<div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-3 flex-wrap">
+<div>
+<h1 className="text-xl font-bold text-slate-900">Data Analytics Training</h1>
+<p className="text-sm text-slate-600">Demo mode • Hands-on deliverables</p>
+</div>
 
-                <div className="rounded-xl bg-white p-5 shadow">
-                  <p className="text-sm text-slate-600">Work style</p>
-                  <p className="text-lg font-bold text-slate-900 mt-1">Clean, summarize, recommend</p>
-                  <p className="text-sm text-slate-600 mt-2">
-                    Each task is built like a real analyst request with messy data and a deliverable.
-                  </p>
-                </div>
+<div className="flex gap-2 flex-wrap">
+{/* NEW: Back to Home button */}
+<button
+onClick={() => setView("home")}
+className="px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-100"
+>
+← Back to Home
+</button>
 
-                <div className="rounded-xl bg-white p-5 shadow">
-                  <p className="text-sm text-slate-600">Full platform note</p>
-                  <p className="text-sm text-slate-700 mt-2 leading-relaxed">
-                    The full platform includes assessment, time tracking, and a full workload.
-                    Demo mode removes those so learners stay focused and engaged.
-                  </p>
-                </div>
-              </div>
+{/* EXISTING: Dashboard button — KEEP */}
+<button onClick={() => setView("dashboard")} className={cx("px-3 py-2 rounded-lg text-sm font-semibold", view === "dashboard" ? "bg-indigo-50 text-indigo-700" : "text-slate-700 hover:bg-slate-100")}>
+Dashboard
+</button>
 
-              <div className="mt-6 rounded-xl bg-white p-6 shadow">
-                <h3 className="text-lg font-bold text-slate-900">Next step</h3>
-                <p className="text-slate-600 mt-1">
-                  Go to Tasks and start with Week 1. Copy the dataset into Google Sheets if you want.
-                </p>
-                <button
-                  onClick={() => setView("tasks")}
-                  className="mt-4 inline-flex items-center justify-center rounded-lg bg-indigo-600 text-white px-5 py-3 font-bold hover:bg-indigo-700"
-                >
-                  View Tasks
-                </button>
-              </div>
-            </div>
+{/* EXISTING: Tasks button — KEEP */}
+<button onClick={() => setView("tasks")} className={cx("px-3 py-2 rounded-lg text-sm font-semibold", view === "tasks" ? "bg-indigo-50 text-indigo-700" : "text-slate-700 hover:bg-slate-100")}>
+Tasks
+</button>
 
-            {toast && (
-              <div className="fixed bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-slate-900 text-white px-4 py-2 text-sm shadow-lg">
-                {toast}
-              </div>
-            )}
-          </div>
-        );
-      }
+{/* EXISTING: Certificate button — KEEP */}
+<button onClick={() => setView("certificate")} className={cx("px-3 py-2 rounded-lg text-sm font-semibold", view === "certificate" ? "bg-indigo-50 text-indigo-700" : "text-slate-700 hover:bg-slate-100")}>
+Certificate
+</button>
+</div>
+</div>
+</div>
+);
+}
 
-      // Tasks list
-      if (view === "tasks") {
-        return (
-          <div className="min-h-screen bg-slate-50">
-            <TopNav />
-            <div className="max-w-6xl mx-auto px-4 py-6">
-              <div className="flex items-start justify-between gap-4 flex-wrap">
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-900">Tasks</h2>
-                  <p className="text-slate-600 mt-1">Pick a task. Complete the self-check. Add notes. Mark complete.</p>
-                </div>
-                <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
-                  <p className="text-sm text-slate-600">Progress</p>
-                  <p className="text-base font-bold text-slate-900">{completedCount} / {totalTasks} tasks completed</p>
-                </div>
-              </div>
+if (view === "dashboard") {
+const pct = totalTasks ? Math.round((completedCount / totalTasks) * 100) : 0;
 
-              <div className="mt-6 space-y-6">
-                {weeks.map(weekBlock => (
-                  <div key={weekBlock.week} className="rounded-xl bg-white shadow p-5">
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <h3 className="text-xl font-bold text-slate-900">Week {weekBlock.week}</h3>
-                      <span className="text-sm text-slate-600">
-                        {tasks.filter(t => t.week === weekBlock.week && user.completedTaskIds.includes(t.id)).length}
-                        /
-                        {tasks.filter(t => t.week === weekBlock.week).length}
-                        {" "}
-                        completed
-                      </span>
-                    </div>
+return (
+<div className="min-h-screen bg-slate-50">
+<TopNav />
+<div className="max-w-6xl mx-auto px-4 py-6">
+<div className="rounded-xl bg-indigo-600 text-white p-6 shadow">
+<h2 className="text-2xl font-bold">Welcome, {user.name}!</h2>
+<p className="mt-1 text-indigo-100">
+This demo focuses on realistic deliverables, not quiz questions.
+</p>
+</div>
 
-                    <div className="mt-4 space-y-4">
-                      {weekBlock.days.map(dayBlock => (
-                        <div key={dayBlock.day} className="rounded-lg border border-slate-200 p-4">
-                          <div className="flex items-center justify-between flex-wrap gap-2">
-                            <h4 className="text-lg font-bold text-slate-900">{dayBlock.day}</h4>
-                            <span className="text-sm text-slate-600">
-                              {dayBlock.tasks.filter(t => user.completedTaskIds.includes(t.id)).length}
-                              /
-                              {dayBlock.tasks.length}
-                              {" "}
-                              completed
-                            </span>
-                          </div>
+<div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+<div className="rounded-xl bg-white p-5 shadow">
+<p className="text-sm text-slate-600">Tasks completed</p>
+<p className="text-3xl font-bold text-slate-900 mt-1">{completedCount} / {totalTasks}</p>
+<div className="mt-3 h-3 rounded-full bg-slate-200">
+<div className="h-3 rounded-full bg-indigo-600" style={{ width: ``${pct}%` }} />
+</div>
+<p className="text-xs text-slate-600 mt-2">{pct}% complete</p>
+</div>
 
-                          <div className="mt-3 space-y-3">
-                            {dayBlock.tasks.map(task => {
-                              const completed = user.completedTaskIds.includes(task.id);
-                              return (
-                                <div key={task.id} className="flex items-start justify-between gap-3 rounded-lg border border-slate-200 p-4 hover:bg-slate-50">
-                                  <div className="flex items-start gap-3 flex-1">
-                                    {completed
-                                      ? <CheckCircle className="text-green-700 mt-0.5 flex-shrink-0" size={22} />
-                                      : <Circle className="text-slate-400 mt-0.5 flex-shrink-0" size={22} />
-                                    }
-                                    <div className="min-w-0">
-                                      <p className="font-bold text-slate-900">{task.title}</p>
-                                      <p className="text-sm text-slate-600 mt-1">{task.summary}</p>
-                                    </div>
-                                  </div>
+<div className="rounded-xl bg-white p-5 shadow">
+<p className="text-sm text-slate-600">Work style</p>
+<p className="text-lg font-bold text-slate-900 mt-1">Clean, summarize, recommend</p>
+<p className="text-sm text-slate-600 mt-2">
+Each task is built like a real analyst request with messy data and a deliverable.
+</p>
+</div>
 
-                                  <div className="text-right flex-shrink-0">
-                                    {!completed ? (
-                                      <button
-                                        onClick={() => setCurrentTaskId(task.id)}
-                                        className="rounded-lg bg-indigo-600 text-white px-4 py-2 text-sm font-bold hover:bg-indigo-700"
-                                      >
-                                        Start
-                                      </button>
-                                    ) : (
-                                      <button
-                                        onClick={() => setCurrentTaskId(task.id)}
-                                        className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-800 hover:bg-slate-50"
-                                      >
-                                        Review
-                                      </button>
-                                    )}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+<div className="rounded-xl bg-white p-5 shadow">
+<p className="text-sm text-slate-600">Full platform note</p>
+<p className="text-sm text-slate-700 mt-2 leading-relaxed">
+The full platform includes assessment, time tracking, and a full workload.
+Demo mode removes those so learners stay focused and engaged.
+</p>
+</div>
+</div>
 
-            {toast && (
-              <div className="fixed bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-slate-900 text-white px-4 py-2 text-sm shadow-lg">
-                {toast}
-              </div>
-            )}
-          </div>
-        );
-      }
+<div className="mt-6 rounded-xl bg-white p-6 shadow">
+<h3 className="text-lg font-bold text-slate-900">Next step</h3>
+<p className="text-slate-600 mt-1">
+Go to Tasks and start with Week 1. Copy the dataset into Google Sheets if you want.
+</p>
+<button
+onClick={() => setView("tasks")}
+className="mt-4 inline-flex items-center justify-center rounded-lg bg-indigo-600 text-white px-5 py-3 font-bold hover:bg-indigo-700"
+>
+View Tasks
+</button>
+</div>
+</div>
 
-      // Certificate
-      if (view === "certificate") {
-        const done = completedCount >= totalTasks;
-        return (
-          <div className="min-h-screen bg-slate-50">
-            <TopNav />
-            <div className="max-w-6xl mx-auto px-4 py-6">
-              <div className="rounded-xl bg-white shadow p-6">
-                <h2 className="text-2xl font-bold text-slate-900">Certificate</h2>
-                <p className="text-slate-600 mt-1">
-                  Demo certificate is based on completing all demo tasks.
-                </p>
+{toast && (
+<div className="fixed bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-slate-900 text-white px-4 py-2 text-sm shadow-lg">
+{toast}
+</div>
+)}
+</div>
+);
+}
 
-                <div className="mt-6">
-                  {!done ? (
-                    <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
-                      <p className="font-bold text-slate-900">Not yet complete</p>
-                      <p className="text-slate-700 mt-1">
-                        Progress: {completedCount} / {totalTasks} tasks
-                      </p>
-                      <div className="mt-3 h-3 rounded-full bg-slate-200">
-                        <div
-                          className="h-3 rounded-full bg-indigo-600"
-                          style={{ width: `${totalTasks ? (completedCount / totalTasks) * 100 : 0}%` }}
-                        />
-                      </div>
-                      <button
-                        onClick={() => setView("tasks")}
-                        className="mt-4 rounded-lg bg-indigo-600 text-white px-5 py-3 font-bold hover:bg-indigo-700"
-                      >
-                        Go to Tasks
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="rounded-xl border-4 border-indigo-600 p-8 text-center bg-white">
-                      <h3 className="text-3xl font-extrabold text-slate-900">Certificate of Completion</h3>
-                      <p className="text-slate-700 mt-4">This certifies that</p>
-                      <p className="text-2xl font-extrabold text-indigo-700 mt-2">{user.name}</p>
-                      <p className="text-slate-700 mt-4">has successfully completed</p>
-                      <p className="text-xl font-bold text-slate-900 mt-2">Data Analytics Demo Training</p>
+// Tasks list
+if (view === "tasks") {
+return (
+<div className="min-h-screen bg-slate-50">
+<TopNav />
+<div className="max-w-6xl mx-auto px-4 py-6">
+<div className="flex items-start justify-between gap-4 flex-wrap">
+<div>
+<h2 className="text-2xl font-bold text-slate-900">Tasks</h2>
+<p className="text-slate-600 mt-1">Pick a task. Complete the self-check. Add notes. Mark complete.</p>
+</div>
+<div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
+<p className="text-sm text-slate-600">Progress</p>
+<p className="text-base font-bold text-slate-900">{completedCount} / {totalTasks} tasks completed</p>
+</div>
+</div>
 
-                      <div className="mt-6 text-slate-700 space-y-1">
-                        <p><span className="font-bold">Tasks completed:</span> {completedCount} / {totalTasks}</p>
-                        <p><span className="font-bold">Completion date:</span> {new Date().toLocaleDateString()}</p>
-                      </div>
+<div className="mt-6 space-y-6">
+{weeks.map(weekBlock => (
+<div key={weekBlock.week} className="rounded-xl bg-white shadow p-5">
+<div className="flex items-center justify-between flex-wrap gap-2">
+<h3 className="text-xl font-bold text-slate-900">Week {weekBlock.week}</h3>
+<span className="text-sm text-slate-600">
+{tasks.filter(t => t.week === weekBlock.week && user.completedTaskIds.includes(t.id)).length}
+/
+{tasks.filter(t => t.week === weekBlock.week).length}
+{" "}
+completed
+</span>
+</div>
 
-                      <p className="text-xs text-slate-600 mt-6 leading-relaxed">
-                        Demo mode focuses on realistic deliverables. The full platform includes assessment, time tracking, and a full workload.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      }
+<div className="mt-4 space-y-4">
+{weekBlock.days.map(dayBlock => (
+<div key={dayBlock.day} className="rounded-lg border border-slate-200 p-4">
+<div className="flex items-center justify-between flex-wrap gap-2">
+<h4 className="text-lg font-bold text-slate-900">{dayBlock.day}</h4>
+<span className="text-sm text-slate-600">
+{dayBlock.tasks.filter(t => user.completedTaskIds.includes(t.id)).length}
+/
+{dayBlock.tasks.length}
+{" "}
+completed
+</span>
+</div>
 
-      return null;
-    }
+<div className="mt-3 space-y-3">
+{dayBlock.tasks.map(task => {
+const completed = user.completedTaskIds.includes(task.id);
+return (
+<div key={task.id} className="flex items-start justify-between gap-3 rounded-lg border border-slate-200 p-4 hover:bg-slate-50">
+<div className="flex items-start gap-3 flex-1">
+{completed
+? <CheckCircle className="text-green-700 mt-0.5 flex-shrink-0" size={22} />
+: <Circle className="text-slate-400 mt-0.5 flex-shrink-0" size={22} />
+}
+<div className="min-w-0">
+<p className="font-bold text-slate-900">{task.title}</p>
+<p className="text-sm text-slate-600 mt-1">{task.summary}</p>
+</div>
+</div>
 
-    const root = ReactDOM.createRoot(document.getElementById("root"));
-    root.render(<DataAnalyticsTrainingDemo />);
-  </script>
+<div className="text-right flex-shrink-0">
+{!completed ? (
+<button
+onClick={() => setCurrentTaskId(task.id)}
+className="rounded-lg bg-indigo-600 text-white px-4 py-2 text-sm font-bold hover:bg-indigo-700"
+>
+Start
+</button>
+) : (
+<button
+onClick={() => setCurrentTaskId(task.id)}
+className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-800 hover:bg-slate-50"
+>
+Review
+</button>
+)}
+</div>
+</div>
+);
+})}
+</div>
+</div>
+))}
+</div>
+</div>
+))}
+</div>
+</div>
+
+{toast && (
+<div className="fixed bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-slate-900 text-white px-4 py-2 text-sm shadow-lg">
+{toast}
+</div>
+)}
+</div>
+);
+}
+
+// Certificate
+if (view === "certificate") {
+const done = completedCount >= totalTasks;
+return (
+<div className="min-h-screen bg-slate-50">
+<TopNav />
+<div className="max-w-6xl mx-auto px-4 py-6">
+<div className="rounded-xl bg-white shadow p-6">
+<h2 className="text-2xl font-bold text-slate-900">Certificate</h2>
+<p className="text-slate-600 mt-1">
+Demo certificate is based on completing all demo tasks.
+</p>
+
+<div className="mt-6">
+{!done ? (
+<div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
+<p className="font-bold text-slate-900">Not yet complete</p>
+<p className="text-slate-700 mt-1">
+Progress: {completedCount} / {totalTasks} tasks
+</p>
+<div className="mt-3 h-3 rounded-full bg-slate-200">
+<div
+className="h-3 rounded-full bg-indigo-600"
+style={{ width: ${totalTasks ? (completedCount / totalTasks) * 100 : 0}%` }}
+/>
+</div>
+<button
+onClick={() => setView("tasks")}
+className="mt-4 rounded-lg bg-indigo-600 text-white px-5 py-3 font-bold hover:bg-indigo-700"
+>
+Go to Tasks
+</button>
+</div>
+) : (
+<div className="rounded-xl border-4 border-indigo-600 p-8 text-center bg-white">
+<h3 className="text-3xl font-extrabold text-slate-900">Certificate of Completion</h3>
+<p className="text-slate-700 mt-4">This certifies that</p>
+<p className="text-2xl font-extrabold text-indigo-700 mt-2">{user.name}</p>
+<p className="text-slate-700 mt-4">has successfully completed</p>
+<p className="text-xl font-bold text-slate-900 mt-2">Data Analytics Demo Training</p>
+
+<div className="mt-6 text-slate-700 space-y-1">
+<p><span className="font-bold">Tasks completed:</span> {completedCount} / {totalTasks}</p>
+<p><span className="font-bold">Completion date:</span> {new Date().toLocaleDateString()}</p>
+</div>
+
+<p className="text-xs text-slate-600 mt-6 leading-relaxed">
+Demo mode focuses on realistic deliverables. The full platform includes assessment, time tracking, and a full workload.
+</p>
+</div>
+)}
+</div>
+</div>
+</div>
+</div>
+);
+}
+
+return null;
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<DataAnalyticsTrainingDemo />);
+</script>
 </body>
 </html>
 
@@ -684,366 +690,328 @@
 
 <!-- CHUNK 2 OF 2 -->
 <script type="text/babel">
-  // IMPORTANT: Paste this content inside the tasks useMemo in CHUNK 1
+// IMPORTANT: Paste this content inside the tasks useMemo in CHUNK 1
 </script>
 
 <!-- Replace the empty return [] in CHUNK 1 with this array exactly -->
 <!-- Begin tasks array -->
 [
-  {
-    id: "w1d1t1",
-    week: 1,
-    day: "Monday",
-    title: "Triage the messy orders file",
-    summary: "Identify the biggest data quality issues and document what needs to be fixed before analysis.",
-    scenario:
-      "You just received an Orders export from operations. Leadership wants a quick performance read, but the file is messy. Your first job is triage: identify what is broken, what is missing, and what must be cleaned before anyone trusts the numbers.",
-    steps: [
-      "Scan the dataset and list at least 6 data issues you see (formatting, missing fields, duplicates, invalid values).",
-      "Decide which issues are blocking analysis versus annoying but non-blocking.",
-      "Write a short plan: what you will fix first and why."
-    ],
-    deliverable: {
-      title: "Deliverable: Data Quality Triage Notes",
-      items: [
-        "List at least 6 data issues",
-        "Label each issue as Blocking or Non-blocking",
-        "Write a 3-step cleanup plan"
-      ]
-    },
-    selfCheck: [
-      { key: "issues6", label: "I listed at least 6 issues", hint: "Dates, currency, missing region, duplicates, negative quantity, inconsistent product names." },
-      { key: "blocking", label: "I labeled blocking vs non-blocking", hint: "Blocking means it can change totals or break grouping." },
-      { key: "plan", label: "I wrote a clear 3-step plan", hint: "Make it actionable: what you fix first, second, third." }
-    ],
-    dataset: [
-      ["Order ID","Order Date","Customer","Region","Product","Quantity","Unit Price","Discount","Status"],
-      ["1001","10/1/2024","Acme Co","North","Laptop","1","$1,200.00","0","Shipped"],
-      ["1002","2024-10-01","Acme Co","","laptop","1","1200","0","Shipped"],
-      ["1003","10-02-24","Beacon LLC","South","Mouse","10","$25","5%","Shipped"],
-      ["1004","10/03/2024","Cedar Inc","East","Keyboard","-2","45","0","Returned"],
-      ["1005","10/03/24","Delta Partners","West","Monitor","2","$300.00","$30","Shipped"],
-      ["1005","10/03/24","Delta Partners","West","Monitor","2","$300.00","$30","Shipped"],
-      ["1006","13/01/2024","Echo Corp","North","Lap top","1","$1,199","0","Shipped"],
-      ["1007","2024/10/04","Frosty Co","West","Tablet","3","$299","0","Pending"],
-      ["1008","10/4/2024","Gamma Group","South","Mouse","8","25","0.05","Shipped"]
-    ]
-  },
-  {
-    id: "w1d1t2",
-    week: 1,
-    day: "Monday",
-    title: "Standardize dates and fix duplicates",
-    summary: "Normalize date formats and remove duplicate Order IDs without losing valid orders.",
-    scenario:
-      "Your manager wants a clean base table. Date formats are inconsistent and at least one Order ID appears twice. You need to standardize and remove duplicates safely.",
-    steps: [
-      "Standardize Order Date to YYYY-MM-DD.",
-      "Remove duplicate rows caused by duplicate Order ID 1005.",
-      "Flag suspicious dates that are invalid or ambiguous (example: 13/01/2024)."
-    ],
-    deliverable: {
-      title: "Deliverable: Cleaned base table and notes",
-      items: [
-        "Dates standardized to YYYY-MM-DD",
-        "Duplicate Order ID removed (keep 1 correct row)",
-        "Note any rows that need stakeholder clarification"
-      ]
-    },
-    selfCheck: [
-      { key: "dates", label: "Dates standardized", hint: "Same field, one consistent format." },
-      { key: "dupes", label: "Duplicate removed safely", hint: "Do not delete real unique orders." },
-      { key: "flags", label: "Ambiguous dates flagged", hint: "Explain why it is ambiguous and what you need clarified." }
-    ],
-    dataset: [
-      ["Order ID","Order Date","Customer","Region","Product","Quantity","Unit Price","Discount","Status"],
-      ["1001","10/1/2024","Acme Co","North","Laptop","1","$1,200.00","0","Shipped"],
-      ["1002","2024-10-01","Acme Co","","laptop","1","1200","0","Shipped"],
-      ["1005","10/03/24","Delta Partners","West","Monitor","2","$300.00","$30","Shipped"],
-      ["1005","10/03/24","Delta Partners","West","Monitor","2","$300.00","$30","Shipped"],
-      ["1006","13/01/2024","Echo Corp","North","Lap top","1","$1,199","0","Shipped"],
-      ["1007","2024/10/04","Frosty Co","West","Tablet","3","$299","0","Pending"],
-      ["1008","10/4/2024","Gamma Group","South","Mouse","8","25","0.05","Shipped"]
-    ]
-  },
-  {
-    id: "w1d2t1",
-    week: 1,
-    day: "Tuesday",
-    title: "Normalize currency, discounts, and compute net revenue",
-    summary: "Convert currency and discount formats into consistent numeric fields and compute Net Revenue.",
-    scenario:
-      "Finance needs net revenue. The dataset mixes $ signs, commas, decimals, discount percentages, and discount dollars. Clean it into numbers and calculate net revenue per order line.",
-    steps: [
-      "Create numeric fields: UnitPriceNum, DiscountNum, DiscountType.",
-      "Interpret Discount values correctly: 5% is percent, $30 is dollars, 0.05 is percent, 0 is none.",
-      "Compute NetRevenue = Quantity * UnitPriceNum - discountApplied."
-    ],
-    deliverable: {
-      title: "Deliverable: Net revenue logic and results",
-      items: [
-        "Explain how you interpreted each discount type",
-        "Provide Net Revenue for at least 5 rows",
-        "Call out any row where discount interpretation is uncertain"
-      ]
-    },
-    selfCheck: [
-      { key: "types", label: "Discount types handled", hint: "Percent, dollars, none." },
-      { key: "net", label: "Net revenue computed", hint: "Quantity times unit price minus discount." },
-      { key: "uncertain", label: "Uncertain cases noted", hint: "Example: blank region is not discount, but still note any confusing discount formats." }
-    ],
-    dataset: [
-      ["Order ID","Customer","Product","Quantity","Unit Price","Discount"],
-      ["1001","Acme Co","Laptop","1","$1,200.00","0"],
-      ["1003","Beacon LLC","Mouse","10","$25","5%"],
-      ["1005","Delta Partners","Monitor","2","$300.00","$30"],
-      ["1008","Gamma Group","Mouse","8","25","0.05"],
-      ["1010","Harbor Ltd","Keyboard","4","$45.00","0"]
-    ]
-  },
-  {
-    id: "w1d2t2",
-    week: 1,
-    day: "Tuesday",
-    title: "Fix product name inconsistencies",
-    summary: "Standardize product names so reporting is correct.",
-    scenario:
-      "Your pivot tables are wrong because Laptop appears as laptop and Lap top. Standardize product names to a clean set.",
-    steps: [
-      "Create a simple mapping for product names.",
-      "Standardize to: Laptop, Mouse, Keyboard, Monitor, Tablet.",
-      "Count how many rows were affected by name standardization."
-    ],
-    deliverable: {
-      title: "Deliverable: Standardization mapping and impact",
-      items: [
-        "Provide your mapping table",
-        "State how many rows changed",
-        "State what the standardized list of products is"
-      ]
-    },
-    selfCheck: [
-      { key: "map", label: "Mapping created", hint: "Example: laptop and Lap top map to Laptop." },
-      { key: "list", label: "Standard list defined", hint: "No extra surprise categories." },
-      { key: "impact", label: "Impact counted", hint: "How many rows changed due to cleanup." }
-    ],
-    dataset: [
-      ["Order ID","Product"],
-      ["1001","Laptop"],
-      ["1002","laptop"],
-      ["1006","Lap top"],
-      ["1003","Mouse"],
-      ["1009","mouse"],
-      ["1010","Keyboard"],
-      ["1011","Monitor"],
-      ["1012","Tablet"]
-    ]
-  },
-  {
-    id: "w1d3t1",
-    week: 1,
-    day: "Wednesday",
-    title: "Region completeness and backfill recommendation",
-    summary: "Assess missing Region values and recommend a backfill approach.",
-    scenario:
-      "Leadership wants revenue by Region, but some Region values are blank. You need to quantify the damage and propose a realistic fix.",
-    steps: [
-      "Count rows with missing Region.",
-      "Estimate how much revenue is tied to missing Region rows.",
-      "Recommend a backfill approach (use customer default, shipping address lookup, or leave as Unknown)."
-    ],
-    deliverable: {
-      title: "Deliverable: Region gap assessment",
-      items: [
-        "Missing Region count",
-        "Revenue tied to missing Region",
-        "Recommendation with a reason"
-      ]
-    },
-    selfCheck: [
-      { key: "count", label: "Missing count calculated", hint: "Do not guess, actually count rows." },
-      { key: "revenue", label: "Revenue impact estimated", hint: "Use net revenue if available, otherwise gross." },
-      { key: "rec", label: "Backfill recommendation provided", hint: "Recommend the safest option and explain why." }
-    ],
-    dataset: [
-      ["Order ID","Customer","Region","Quantity","Unit Price"],
-      ["1001","Acme Co","North","1","1200"],
-      ["1002","Acme Co","","1","1200"],
-      ["1003","Beacon LLC","South","10","25"],
-      ["1007","Frosty Co","West","3","299"],
-      ["1013","Acme Co","","2","25"]
-    ]
-  },
-  {
-    id: "w1d3t2",
-    week: 1,
-    day: "Wednesday",
-    title: "Build a pivot style summary",
-    summary: "Produce revenue by Region and by Product, then identify the top driver.",
-    scenario:
-      "Your manager needs a one-slide summary by tomorrow morning. You will create pivot-style totals and identify the top product and top region.",
-    steps: [
-      "Create totals by Region.",
-      "Create totals by Product.",
-      "Write 2 bullet insights about what is driving revenue."
-    ],
-    deliverable: {
-      title: "Deliverable: Summary totals and insights",
-      items: [
-        "Revenue by Region totals",
-        "Revenue by Product totals",
-        "2 insights written like an analyst"
-      ]
-    },
-    selfCheck: [
-      { key: "region", label: "Region totals provided", hint: "Include Unknown if Region is missing." },
-      { key: "product", label: "Product totals provided", hint: "After product standardization." },
-      { key: "insights", label: "Insights are specific", hint: "Name the driver and why it matters." }
-    ],
-    dataset: [
-      ["Order ID","Region","Product","Net Revenue"],
-      ["1001","North","Laptop","1200"],
-      ["1003","South","Mouse","237.5"],
-      ["1005","West","Monitor","570"],
-      ["1007","West","Tablet","897"],
-      ["1002","Unknown","Laptop","1200"]
-    ]
-  },
-  {
-    id: "w1d4t1",
-    week: 1,
-    day: "Thursday",
-    title: "Find and explain an outlier",
-    summary: "Identify a suspicious value and explain how you would validate it.",
-    scenario:
-      "A stakeholder suspects data errors. You need to find a likely outlier and document how you would validate it before reporting.",
-    steps: [
-      "Identify 1 value that looks suspicious.",
-      "Explain why it is suspicious.",
-      "List 3 validation checks you would do (source lookup, order system check, business rule)."
-    ],
-    deliverable: {
-      title: "Deliverable: Outlier note",
-      items: [
-        "Outlier identified",
-        "Reason explained",
-        "3 validation checks listed"
-      ]
-    },
-    selfCheck: [
-      { key: "outlier", label: "Outlier identified", hint: "Examples: negative quantity, unrealistic discount, impossible date." },
-      { key: "why", label: "Reason explained", hint: "Explain why it could distort reporting." },
-      { key: "checks", label: "3 checks listed", hint: "Be practical: what would you actually do at work." }
-    ],
-    dataset: [
-      ["Order ID","Order Date","Product","Quantity","Unit Price","Discount"],
-      ["2001","2024-10-06","Laptop","1","1200","0"],
-      ["2002","2024-10-06","Mouse","500","25","0"],
-      ["2003","2024-10-07","Keyboard","2","45","90%"],
-      ["2004","2024-10-08","Monitor","-1","300","0"]
-    ]
-  },
-  {
-    id: "w1d5t1",
-    week: 1,
-    day: "Friday",
-    title: "Write an executive summary",
-    summary: "Write a short, leadership-ready summary with findings, risks, and next steps.",
-    scenario:
-      "You are sending a summary to leadership. They do not want a worksheet. They want the story, the risk, and what happens next.",
-    steps: [
-      "Write 6 to 10 sentences summarizing performance.",
-      "Include 2 findings, 2 risks, and 2 next steps.",
-      "Keep it concise and leadership friendly."
-    ],
-    deliverable: {
-      title: "Deliverable: Leadership summary",
-      items: [
-        "6 to 10 sentences",
-        "2 findings, 2 risks, 2 next steps",
-        "Clear, non-technical language"
-      ]
-    },
-    selfCheck: [
-      { key: "length", label: "Correct length", hint: "6 to 10 sentences, not a novel." },
-      { key: "structure", label: "Findings, risks, next steps included", hint: "Make them explicit." },
-      { key: "tone", label: "Leadership-friendly tone", hint: "Clear, direct, no classroom vibes." }
-    ],
-    dataset: [
-      ["Metric","Value"],
-      ["Total Net Revenue","4104.5"],
-      ["Top Region","West"],
-      ["Top Product","Laptop"],
-      ["Known Data Issues","Missing regions, inconsistent dates, duplicates"]
-    ]
-  },
-  {
-    id: "w2d2t1",
-    week: 2,
-    day: "Tuesday",
-    title: "Define KPIs for a simple dashboard",
-    summary: "Choose KPIs that match the business goals and explain what they mean.",
-    scenario:
-      "You are asked to propose a lightweight dashboard. The goal is to track health and quickly spot problems. You need meaningful KPIs, not random metrics.",
-    steps: [
-      "Define 6 KPIs for an Orders performance dashboard.",
-      "For each KPI, explain why it matters and what a red flag would look like.",
-      "List 3 filters the dashboard should include."
-    ],
-    deliverable: {
-      title: "Deliverable: KPI and dashboard spec",
-      items: [
-        "6 KPIs with explanations",
-        "Red flag definition for each KPI",
-        "3 dashboard filters"
-      ]
-    },
-    selfCheck: [
-      { key: "kpis", label: "6 KPIs defined", hint: "Examples: net revenue, AOV, units, return rate, discount rate, revenue by region." },
-      { key: "flags", label: "Red flags defined", hint: "What would trigger investigation." },
-      { key: "filters", label: "Filters included", hint: "Examples: date range, region, product." }
-    ],
-    dataset: [
-      ["Context","Value"],
-      ["Business","Ecommerce orders"],
-      ["Stakeholders","Operations, Finance, Leadership"],
-      ["Main question","Where is performance growing or slipping"]
-    ]
-  },
-  {
-    id: "w2d4t1",
-    week: 2,
-    day: "Thursday",
-    title: "Make a data-driven recommendation",
-    summary: "Use the summary to recommend one action and justify it.",
-    scenario:
-      "The business wants to improve performance without guessing. Based on the dataset summary, propose one recommendation and justify it with numbers and logic.",
-    steps: [
-      "Choose one recommendation (example: focus on a region, adjust discounts, fix returns).",
-      "Support it with at least 2 data points.",
-      "List 2 follow-up questions you would ask stakeholders."
-    ],
-    deliverable: {
-      title: "Deliverable: Recommendation memo",
-      items: [
-        "One recommendation",
-        "Two supporting data points",
-        "Two follow-up stakeholder questions"
-      ]
-    },
-    selfCheck: [
-      { key: "rec", label: "Recommendation is clear", hint: "One main action, not a wish list." },
-      { key: "data", label: "Data points included", hint: "Reference numbers, not vibes." },
-      { key: "questions", label: "Follow-up questions included", hint: "Ask what you need to validate the recommendation." }
-    ],
-    dataset: [
-      ["Region","Net Revenue"],
-      ["North","1200"],
-      ["South","237.5"],
-      ["West","1467"],
-      ["Unknown","1200"],
-      ["Return rate estimate","Higher than expected due to negative quantity row"]
-    ]
-  }
+{
+id: "w1d1t1",
+week: 1,
+day: "Monday",
+title: "Triage the messy orders file",
+summary: "Identify the biggest data quality issues and document what needs to be fixed before analysis.",
+scenario:
+"You just received an Orders export from operations. Leadership wants a quick performance read, but the file is messy. Your first job is triage: identify what is broken, what is missing, and what must be cleaned before anyone trusts the numbers.",
+steps: [
+"Scan the dataset and list at least 6 data issues you see (formatting, missing fields, duplicates, invalid values).",
+"Decide which issues are blocking analysis versus annoying but non-blocking.",
+"Write a short plan: what you will fix first and why."
+ ],
+deliverable: {
+title: "Deliverable: Data Quality Triage Notes",
+items: [
+"List at least 6 data issues",
+"Label each issue as Blocking or Non-blocking",
+"Write a 3-step cleanup plan"
+ ]
+},
+selfCheck: [
+{ key: "issues6", label: "I listed at least 6 issues", hint: "Dates, currency, missing region, duplicates, negative quantity, inconsistent product names." },
+{ key: "blocking", label: "I labeled blocking vs non-blocking", hint: "Blocking means it can change totals or break grouping." },
+{ key: "plan", label: "I wrote a clear 3-step plan", hint: "Make it actionable: what you fix first, second, third." }
+ ],
+dataset: [
+["Order ID","Order Date","Customer","Region","Product","Quantity","Unit Price","Discount","Status"],
+["1001","10/1/2024","Acme Co","North","Laptop","1","$1,200.00","0","Shipped"], ["1002","2024-10-01","Acme Co","","laptop","1","1200","0","Shipped"], ["1003","10-02-24","Beacon LLC","South","Mouse","10","$25","5%","Shipped"],
+["1004","10/03/2024","Cedar Inc","East","Keyboard","-2","45","0","Returned"],
+["1005","10/03/24","Delta Partners","West","Monitor","2","$300.00","$30","Shipped"],
+["1005","10/03/24","Delta Partners","West","Monitor","2","$300.00","$30","Shipped"],
+["1006","13/01/2024","Echo Corp","North","Lap top","1","$1,199","0","Shipped"], ["1007","2024/10/04","Frosty Co","West","Tablet","3","$299","0","Pending"],
+["1008","10/4/2024","Gamma Group","South","Mouse","8","25","0.05","Shipped"]
+]
+},
+{
+id: "w1d1t2",
+week: 1,
+day: "Monday",
+title: "Standardize dates and fix duplicates",
+summary: "Normalize date formats and remove duplicate Order IDs without losing valid orders.",
+scenario:
+"Your manager wants a clean base table. Date formats are inconsistent and at least one Order ID appears twice. You need to standardize and remove duplicates safely.",
+steps: [
+"Standardize Order Date to YYYY-MM-DD.",
+"Remove duplicate rows caused by duplicate Order ID 1005.",
+"Flag suspicious dates that are invalid or ambiguous (example: 13/01/2024)."
+ ],
+deliverable: {
+title: "Deliverable: Cleaned base table and notes",
+items: [
+"Dates standardized to YYYY-MM-DD",
+"Duplicate Order ID removed (keep 1 correct row)",
+"Note any rows that need stakeholder clarification"
+ ]
+},
+selfCheck: [
+{ key: "dates", label: "Dates standardized", hint: "Same field, one consistent format." },
+{ key: "dupes", label: "Duplicate removed safely", hint: "Do not delete real unique orders." },
+{ key: "flags", label: "Ambiguous dates flagged", hint: "Explain why it is ambiguous and what you need clarified." }
+ ],
+dataset: [
+["Order ID","Order Date","Customer","Region","Product","Quantity","Unit Price","Discount","Status"],
+["1001","10/1/2024","Acme Co","North","Laptop","1","$1,200.00","0","Shipped"], ["1002","2024-10-01","Acme Co","","laptop","1","1200","0","Shipped"], ["1005","10/03/24","Delta Partners","West","Monitor","2","$300.00","$30","Shipped"], ["1005","10/03/24","Delta Partners","West","Monitor","2","$300.00","$30","Shipped"], ["1006","13/01/2024","Echo Corp","North","Lap top","1","$1,199","0","Shipped"],
+["1007","2024/10/04","Frosty Co","West","Tablet","3","$299","0","Pending"], ["1008","10/4/2024","Gamma Group","South","Mouse","8","25","0.05","Shipped"] ] }, { id: "w1d2t1", week: 1, day: "Tuesday", title: "Normalize currency, discounts, and compute net revenue", summary: "Convert currency and discount formats into consistent numeric fields and compute Net Revenue.", scenario: "Finance needs net revenue. The dataset mixes $ signs, commas, decimals, discount percentages, and discount dollars. Clean it into numbers and calculate net revenue per order line.", steps: [ "Create numeric fields: UnitPriceNum, DiscountNum, DiscountType.", "Interpret Discount values correctly: 5% is percent, $30 is dollars, 0.05 is percent, 0 is none.", "Compute NetRevenue = Quantity * UnitPriceNum - discountApplied." ], deliverable: { title: "Deliverable: Net revenue logic and results", items: [ "Explain how you interpreted each discount type", "Provide Net Revenue for at least 5 rows", "Call out any row where discount interpretation is uncertain" ] }, selfCheck: [ { key: "types", label: "Discount types handled", hint: "Percent, dollars, none." }, { key: "net", label: "Net revenue computed", hint: "Quantity times unit price minus discount." }, { key: "uncertain", label: "Uncertain cases noted", hint: "Example: blank region is not discount, but still note any confusing discount formats." } ], dataset: [ ["Order ID","Customer","Product","Quantity","Unit Price","Discount"], ["1001","Acme Co","Laptop","1","$1,200.00","0"],
+["1003","Beacon LLC","Mouse","10","$25","5%"], ["1005","Delta Partners","Monitor","2","$300.00","`$30"],
+["1008","Gamma Group","Mouse","8","25","0.05"],
+["1010","Harbor Ltd","Keyboard","4","$45.00","0"]
+]
+},
+{
+id: "w1d2t2",
+week: 1,
+day: "Tuesday",
+title: "Fix product name inconsistencies",
+summary: "Standardize product names so reporting is correct.",
+scenario:
+"Your pivot tables are wrong because Laptop appears as laptop and Lap top. Standardize product names to a clean set.",
+steps: [
+"Create a simple mapping for product names.",
+"Standardize to: Laptop, Mouse, Keyboard, Monitor, Tablet.",
+"Count how many rows were affected by name standardization."
+ ],
+deliverable: {
+title: "Deliverable: Standardization mapping and impact",
+items: [
+"Provide your mapping table",
+"State how many rows changed",
+"State what the standardized list of products is"
+ ]
+},
+selfCheck: [
+{ key: "map", label: "Mapping created", hint: "Example: laptop and Lap top map to Laptop." },
+{ key: "list", label: "Standard list defined", hint: "No extra surprise categories." },
+{ key: "impact", label: "Impact counted", hint: "How many rows changed due to cleanup." }
+ ],
+dataset: [
+["Order ID","Product"],
+["1001","Laptop"],
+["1002","laptop"],
+["1006","Lap top"],
+["1003","Mouse"],
+["1009","mouse"],
+["1010","Keyboard"],
+["1011","Monitor"],
+["1012","Tablet"]
+]
+},
+{
+id: "w1d3t1",
+week: 1,
+day: "Wednesday",
+title: "Region completeness and backfill recommendation",
+summary: "Assess missing Region values and recommend a backfill approach.",
+scenario:
+"Leadership wants revenue by Region, but some Region values are blank. You need to quantify the damage and propose a realistic fix.",
+steps: [
+"Count rows with missing Region.",
+"Estimate how much revenue is tied to missing Region rows.",
+"Recommend a backfill approach (use customer default, shipping address lookup, or leave as Unknown)."
+ ],
+deliverable: {
+title: "Deliverable: Region gap assessment",
+items: [
+"Missing Region count",
+"Revenue tied to missing Region",
+"Recommendation with a reason"
+ ]
+},
+selfCheck: [
+{ key: "count", label: "Missing count calculated", hint: "Do not guess, actually count rows." },
+{ key: "revenue", label: "Revenue impact estimated", hint: "Use net revenue if available, otherwise gross." },
+{ key: "rec", label: "Backfill recommendation provided", hint: "Recommend the safest option and explain why." }
+ ],
+dataset: [
+["Order ID","Customer","Region","Quantity","Unit Price"],
+["1001","Acme Co","North","1","1200"],
+["1002","Acme Co","","1","1200"],
+["1003","Beacon LLC","South","10","25"],
+["1007","Frosty Co","West","3","299"],
+["1013","Acme Co","","2","25"]
+]
+},
+{
+id: "w1d3t2",
+week: 1,
+day: "Wednesday",
+title: "Build a pivot style summary",
+summary: "Produce revenue by Region and by Product, then identify the top driver.",
+scenario:
+"Your manager needs a one-slide summary by tomorrow morning. You will create pivot-style totals and identify the top product and top region.",
+steps: [
+"Create totals by Region.",
+"Create totals by Product.",
+"Write 2 bullet insights about what is driving revenue."
+ ],
+deliverable: {
+title: "Deliverable: Summary totals and insights",
+items: [
+"Revenue by Region totals",
+"Revenue by Product totals",
+"2 insights written like an analyst"
+ ]
+},
+selfCheck: [
+{ key: "region", label: "Region totals provided", hint: "Include Unknown if Region is missing." },
+{ key: "product", label: "Product totals provided", hint: "After product standardization." },
+{ key: "insights", label: "Insights are specific", hint: "Name the driver and why it matters." }
+ ],
+dataset: [
+["Order ID","Region","Product","Net Revenue"],
+["1001","North","Laptop","1200"],
+["1003","South","Mouse","237.5"],
+["1005","West","Monitor","570"],
+["1007","West","Tablet","897"],
+["1002","Unknown","Laptop","1200"]
+]
+},
+{
+id: "w1d4t1",
+week: 1,
+day: "Thursday",
+title: "Find and explain an outlier",
+summary: "Identify a suspicious value and explain how you would validate it.",
+scenario:
+"A stakeholder suspects data errors. You need to find a likely outlier and document how you would validate it before reporting.",
+steps: [
+"Identify 1 value that looks suspicious.",
+"Explain why it is suspicious.",
+"List 3 validation checks you would do (source lookup, order system check, business rule)."
+ ],
+deliverable: {
+title: "Deliverable: Outlier note",
+items: [
+"Outlier identified",
+"Reason explained",
+"3 validation checks listed"
+ ]
+},
+selfCheck: [
+{ key: "outlier", label: "Outlier identified", hint: "Examples: negative quantity, unrealistic discount, impossible date." },
+{ key: "why", label: "Reason explained", hint: "Explain why it could distort reporting." },
+{ key: "checks", label: "3 checks listed", hint: "Be practical: what would you actually do at work." }
+ ],
+dataset: [
+["Order ID","Order Date","Product","Quantity","Unit Price","Discount"],
+["2001","2024-10-06","Laptop","1","1200","0"],
+["2002","2024-10-06","Mouse","500","25","0"],
+["2003","2024-10-07","Keyboard","2","45","90%"],
+["2004","2024-10-08","Monitor","-1","300","0"]
+]
+},
+{
+id: "w1d5t1",
+week: 1,
+day: "Friday",
+title: "Write an executive summary",
+summary: "Write a short, leadership-ready summary with findings, risks, and next steps.",
+scenario:
+"You are sending a summary to leadership. They do not want a worksheet. They want the story, the risk, and what happens next.",
+steps: [
+"Write 6 to 10 sentences summarizing performance.",
+"Include 2 findings, 2 risks, and 2 next steps.",
+"Keep it concise and leadership friendly."
+ ],
+deliverable: {
+title: "Deliverable: Leadership summary",
+items: [
+"6 to 10 sentences",
+"2 findings, 2 risks, 2 next steps",
+"Clear, non-technical language"
+ ]
+},
+selfCheck: [
+{ key: "length", label: "Correct length", hint: "6 to 10 sentences, not a novel." },
+{ key: "structure", label: "Findings, risks, next steps included", hint: "Make them explicit." },
+{ key: "tone", label: "Leadership-friendly tone", hint: "Clear, direct, no classroom vibes." }
+ ],
+dataset: [
+["Metric","Value"],
+["Total Net Revenue","4104.5"],
+["Top Region","West"],
+["Top Product","Laptop"],
+["Known Data Issues","Missing regions, inconsistent dates, duplicates"]
+]
+},
+{
+id: "w2d2t1",
+week: 2,
+day: "Tuesday",
+title: "Define KPIs for a simple dashboard",
+summary: "Choose KPIs that match the business goals and explain what they mean.",
+scenario:
+"You are asked to propose a lightweight dashboard. The goal is to track health and quickly spot problems. You need meaningful KPIs, not random metrics.",
+steps: [
+"Define 6 KPIs for an Orders performance dashboard.",
+"For each KPI, explain why it matters and what a red flag would look like.",
+"List 3 filters the dashboard should include."
+ ],
+deliverable: {
+title: "Deliverable: KPI and dashboard spec",
+items: [
+"6 KPIs with explanations",
+"Red flag definition for each KPI",
+"3 dashboard filters"
+ ]
+},
+selfCheck: [
+{ key: "kpis", label: "6 KPIs defined", hint: "Examples: net revenue, AOV, units, return rate, discount rate, revenue by region." },
+{ key: "flags", label: "Red flags defined", hint: "What would trigger investigation." },
+{ key: "filters", label: "Filters included", hint: "Examples: date range, region, product." }
+ ],
+dataset: [
+["Context","Value"],
+["Business","Ecommerce orders"],
+["Stakeholders","Operations, Finance, Leadership"],
+["Main question","Where is performance growing or slipping"]
+]
+},
+{
+id: "w2d4t1",
+week: 2,
+day: "Thursday",
+title: "Make a data-driven recommendation",
+summary: "Use the summary to recommend one action and justify it.",
+scenario:
+"The business wants to improve performance without guessing. Based on the dataset summary, propose one recommendation and justify it with numbers and logic.",
+steps: [
+"Choose one recommendation (example: focus on a region, adjust discounts, fix returns).",
+"Support it with at least 2 data points.",
+"List 2 follow-up questions you would ask stakeholders."
+ ],
+deliverable: {
+title: "Deliverable: Recommendation memo",
+items: [
+"One recommendation",
+"Two supporting data points",
+"Two follow-up stakeholder questions"
+ ]
+},
+selfCheck: [
+{ key: "rec", label: "Recommendation is clear", hint: "One main action, not a wish list." },
+{ key: "data", label: "Data points included", hint: "Reference numbers, not vibes." },
+{ key: "questions", label: "Follow-up questions included", hint: "Ask what you need to validate the recommendation." }
+ ],
+dataset: [
+["Region","Net Revenue"],
+["North","1200"],
+["South","237.5"],
+["West","1467"],
+["Unknown","1200"],
+["Return rate estimate","Higher than expected due to negative quantity row"]
+]
+}
 ]
 <!-- End tasks array -->
+
+
